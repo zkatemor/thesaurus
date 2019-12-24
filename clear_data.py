@@ -1,43 +1,38 @@
-from pandas import DataFrame
 import pymorphy2
 import json
+import nltk
 
-morph = pymorphy2.MorphAnalyzer()
+
+# токинизируем текст
+def text_tokenizer(text):
+    # для перевода в нормальную форму
+    morph = pymorphy2.MorphAnalyzer()
+    # удаляем все символы, кроме кириллицы
+    regex_tokenizer = nltk.tokenize.RegexpTokenizer('[а-яА-ЯЁё]+')
+    # получаем слова
+    words = regex_tokenizer.tokenize(text.lower())
+    # получаем стоп-слова
+    stop_words = set(nltk.corpus.stopwords.words("russian"))
+    # приводим каждое слово в нормальную форму и удаляем стоп-слова
+    without_stop_words = [(morph.parse(w)[0]).normal_form for w in words if w not in stop_words and len(w) > 1]
+    # добавляем к каждому слову часть речи
+    output = [add_part_of_speech(morph, word) for word in without_stop_words]
+    return output
 
 
-# очистка текста от посторонних символов
-def text_cleaner(text):
-    # приведем текст к нижнему регистру
-    text = text.lower()
-
-    # оставляем в предложении только русские буквы
-    alph = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-
-    cleaned_text = ''
-    for char in text:
-        if (char.isalpha() and char[0] in alph) or (char == ' '):
-            cleaned_text += char
-
-    result = []
-    for word in cleaned_text.split():
-        # лемматизируем
-        result.append(morph.parse(word)[0].normal_form)
-
-    return ' '.join(result)
+# добавление части речи к слову
+def add_part_of_speech(morph, word):
+    p = morph.parse(word)[0]
+    word += '_' + str(p.tag.POS)
+    return word
 
 
 # загружаем исходные отзывы из json файла
 with open('tools/review_db.json', 'r', encoding='utf-8') as f:
     js = json.load(f)
 
-text_list = []
-
-# очищаем от ненужных символов каждый отзыв
-for text in js:
-    text_list.append(text_cleaner(text))
-
-df = DataFrame({'Очищенные отзывы: ': text_list})
-df.to_excel('data_preparation/clear_db.xlsx', sheet_name='Очищенные отзывы', index=False)
-
-with open('data_preparation/clear_db.json', 'w', encoding='utf-8') as f:
-    json.dump(text_list, f, ensure_ascii=False, indent=4)
+# получаем слова в нужной форме
+tokens = [text_tokenizer(js[i]) for i in range(0, len(js))]
+# добавляем слова в json файл
+with open('unallocated_words/dictionary.json', 'w', encoding='utf-8') as f:
+    json.dump(tokens, f, ensure_ascii=False, indent=4)
