@@ -27,20 +27,20 @@ def sort_chi_dict(dict_first, dict_sec):
     total_minus = get_sum(dict_sec)
     sort_dict = {}
 
-    # проходим по всем словам из словаря и высчитываем a, b, c, d
+    # проходим по всем словам/словосочетаниям из словаря и высчитываем a, b, c, d
     for i in range(0, len(dict_first)):
         a = dict_first[i][1]
         b = 0
 
         for j in range(0, len(dict_sec)):
-            # если слово встретилось и во втором словаре тоже
+            # если слово/словосочетание встретилось и во втором словаре тоже
             if dict_first[i][0] == dict_sec[j][0]:
                 b = dict_sec[j][1]
 
         c = total_plus - a
         d = total_minus - b
 
-        # если слово встретилось в первом словаре больше, чем во втором
+        # если слово/словосочетание встретилось в первом словаре больше, чем во втором
         if a > b:
             # добавляем его в словарь
             sort_dict[dict_first[i][0]] = get_chi_square(a, b, c, d)
@@ -52,7 +52,7 @@ def sort_chi_dict(dict_first, dict_sec):
     return sort_dict
 
 
-# загружаем исходные отзывы из json файла
+# загружаем рассортированные слова-кандидаты
 with open('chi_square_dicts/dictionary_plus.json', 'r', encoding='utf-8') as f:
     dictionary_plus = json.load(f)
 
@@ -66,4 +66,20 @@ with open('chi_square_dicts/chi_dict_plus.json', 'w', encoding='utf-8') as f:
     json.dump(chi_dict_plus, f, ensure_ascii=False, indent=4)
 
 with open('chi_square_dicts/chi_dict_minus.json', 'w', encoding='utf-8') as f:
+    json.dump(chi_dict_minus, f, ensure_ascii=False, indent=4)
+
+# загружаем рассортированные словосочетания-кандидаты
+with open('chi_square_dicts/dictionary_collocations_plus.json', 'r', encoding='utf-8') as f:
+    dictionary_plus = json.load(f)
+
+with open('chi_square_dicts/dictionary_collocations_minus.json', 'r', encoding='utf-8') as f:
+    dictionary_minus = json.load(f)
+
+chi_dict_plus = sort_chi_dict(dictionary_plus, dictionary_minus)
+chi_dict_minus = sort_chi_dict(dictionary_minus, dictionary_plus)
+
+with open('chi_square_dicts/chi_dict_collocations_plus.json', 'w', encoding='utf-8') as f:
+    json.dump(chi_dict_plus, f, ensure_ascii=False, indent=4)
+
+with open('chi_square_dicts/chi_dict_collocations_minus.json', 'w', encoding='utf-8') as f:
     json.dump(chi_dict_minus, f, ensure_ascii=False, indent=4)
