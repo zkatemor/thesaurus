@@ -27,6 +27,10 @@ def algorithm_evaluation(test, predict):
     return sum_correct, sum_exist
 
 
+# рассчет F-меры
+def get_f1_score(precision, recall):
+    return 2 * (precision * recall)/(precision + recall)
+
 # загружаем все кандидаты на тонально-окрашенные слова из json файла
 with open('chi_square_dicts/dictionary_plus.json', 'r', encoding='utf-8') as f:
     dictionary_plus = json.load(f)
@@ -88,28 +92,34 @@ print("T_c = " + str(T_c))
 print("K_c = " + str(K_c))
 
 # рассчет точности и полноты
-Precision_A = T_a / K_a
-Precision_B = T_b / K_b
-Precision_C = T_c / K_c
+precision_a = T_a / K_a
+precision_b = T_b / K_b
+precision_c = T_c / K_c
 
-Recall_A = T_a / N
-Recall_B = T_b / N
-Recall_C = T_c / N
+recall_a = T_a / N
+recall_b = T_b / N
+recall_c = T_c / N
 
-print("Точность с подкорпусом а = " + str(Precision_A))
-print("Точность с подкорпусом b = " + str(Precision_B))
-print("Точность с подкорпусом c = " + str(Precision_C))
+print("Точность с подкорпусом а = " + str(precision_a))
+print("Точность с подкорпусом b = " + str(precision_b))
+print("Точность с подкорпусом c = " + str(precision_c))
 
-print("Полнота с подкорпусом а = " + str(Recall_A))
-print("Полнота с подкорпусом b = " + str(Recall_B))
-print("Полнота с подкорпусом c = " + str(Recall_C))
+print("Полнота с подкорпусом а = " + str(recall_a))
+print("Полнота с подкорпусом b = " + str(recall_b))
+print("Полнота с подкорпусом c = " + str(recall_c))
+
+print("F-мера с подкорпусом а = " + str(get_f1_score(precision_a, recall_a)))
+print("F-мера с подкорпусом b = " + str(get_f1_score(precision_b, recall_b)))
+print("F-мера с подкорпусом c = " + str(get_f1_score(precision_c, recall_c)))
 
 # рассчет окончательной точности и полноты
-Precision = np.mean([Precision_A, Precision_B, Precision_C])
-Recall = np.mean([Recall_A, Recall_B, Recall_C])
+precision = np.mean([precision_a, precision_b, precision_c])
+recall = np.mean([recall_a, recall_b, recall_c])
+f_score = get_f1_score(precision, recall)
 
-print("Точность = " + str(Precision))
-print("Полнота = " + str(Recall))
+print("Точность = " + str(precision))
+print("Полнота = " + str(recall))
+print("F-мера = " + str(f_score))
 
 
 

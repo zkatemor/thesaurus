@@ -99,7 +99,6 @@ with open('chi_square_dicts/corpus_minus.json', 'r', encoding='utf-8') as f:
 with open('chi_square_dicts/corpus_plus.json', 'r', encoding='utf-8') as f:
     corpus_plus = json.load(f)
 
-'''
 dictionary_plus = create_dictionary(corpus_plus)
 dictionary_minus = create_dictionary(corpus_minus)
 
@@ -109,7 +108,6 @@ with open('chi_square_dicts/dictionary_plus.json', 'w', encoding='utf-8') as f:
 with open('chi_square_dicts/dictionary_minus.json', 'w', encoding='utf-8') as f:
     json.dump(dictionary_minus, f, ensure_ascii=False, indent=4)
 
-'''
 
 dictionary_plus = create_dictionary_collocations(corpus_plus)
 dictionary_minus = create_dictionary_collocations(corpus_minus)

@@ -17,7 +17,7 @@ def from_tone(prediction, tones):
     return answers
 
 
-# получение раннее сохраненной модели
+# получение раннее сохраненной модели, maxlen и токенайзера
 model = keras.models.load_model('models/model.h5')
 
 f = open('models/maxlen.bin', 'r')
@@ -33,13 +33,15 @@ with open('unallocated_words/unallocated_dictionary.json', 'r', encoding='utf-8'
 
 df = pd.read_csv('rusentilex/rusentilex.csv')
 
+# обработка входного текста, (из слова в вектор)
 unallocated_words = [[word[0]] for word in js]
 unallocated_words_tokens = tokenizer.texts_to_sequences(unallocated_words)
 unallocated_words__pad = pad_sequences(unallocated_words_tokens, maxlen=maxlen)
-
+# предсказание категорий
 predict = model.predict_classes(x=unallocated_words__pad)
 answers = from_tone(predict, df['tone'].unique().tolist())
 
+# инициализация размеченного словаря
 keys = [word[0] for word in js]
 dictionary = dict(zip(keys, answers))
 

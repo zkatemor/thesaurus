@@ -14,9 +14,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+# размер вектора
 EMBEDDING_DIM = 300
+# доля выборки под валидацию
 VALIDATION_SPLIT = 0.2
+# количество эпох обучения
 EPOCH_SIZE = 15
+# число обучающих пакетов
 BATCH_SIZE = 164
 # загрузка русскоязычной модели Word2Vec
 word2vec_model = gensim.downloader.load("word2vec-ruscorpora-300")
@@ -25,10 +29,8 @@ word2vec_model = gensim.downloader.load("word2vec-ruscorpora-300")
 # получение id тональностей
 def get_ids(all_tones):
     result = []
-
     for tone in all_tones:
         result.append(all_tones.unique().tolist().index(tone))
-
     return result
 
 
@@ -42,33 +44,41 @@ def add_part_of_speech(morph, word):
 # получение тональностей по id
 def from_tone(prediction, tones):
     answers = []
-
     for i in range(prediction.shape[0]):
         answers.append(tones[prediction[i]])
-
     return answers
 
 
 def get_model(embedding_weights):
-    # создаем модель
+    # создаем последовательную модель
     model = Sequential()
+    # слой Embedding
     model.add(Embedding(vocab_sz, EMBEDDING_DIM, input_length=maxlen, weights=[embedding_weights],
                         trainable=True))
+    # слой "метод исключения" - решает проблему переобучения
     model.add(Dropout(0.2))
+    # свёрточный слой - создает сверточное ядро, по одному
+    # пространственному (или временному) измерению
     model.add(Conv1D(50,
                      1,
                      padding='valid',
                      activation='relu',
                      strides=1))
+    # слой пулинга
     model.add(GlobalMaxPooling1D())
+    # плотный слой
     model.add(Dense(250))
+    # вновь слой, решающий проблему переобучения
     model.add(Dropout(0.2))
+    # слой активации - максимизирующая функция
     model.add(Activation('relu'))
+    # последний плотный слой с указанием функции выхода - софтмакс
     model.add(Dense(3, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
 
+# отрисовка графика потерь
 def draw_graph(history):
     x = range(EPOCH_SIZE)
     plt.figure(figsize=(10, 5))
@@ -81,6 +91,7 @@ def draw_graph(history):
     plt.show()
 
 
+# получение матрицы весов для встроенного слоя
 def get_embedding_weights():
     embedding_weights = np.zeros(
         # создаём матрицу размером размерность словаря*размерность вектора слова
@@ -111,7 +122,6 @@ with open('rusentilex/rusentilex_sentences.pickle', 'rb') as handle:
 with open('rusentilex/rusentilex_labels.pickle', 'rb') as handle:
     labels = pickle.load(handle)
 
-print('получили нужные штуки')
 counter = collections.Counter()
 # считаем максимальную длину предложений (словосочетаний), а также частоту всех словосочетаний, считанных из файла
 maxlen = 0
@@ -139,7 +149,7 @@ model = get_model(embedding_weights)
 
 X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2)
 # обучение модели
-history = model.fit(X, y, batch_size=BATCH_SIZE, epochs=EPOCH_SIZE,
+history = model.fit(X_train, Y_train, batch_size=BATCH_SIZE, epochs=EPOCH_SIZE,
                     callbacks=[ModelCheckpoint('models/model.h5', save_best_only=True)],
                     validation_split=VALIDATION_SPLIT, verbose=2)
 

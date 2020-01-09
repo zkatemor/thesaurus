@@ -9,7 +9,7 @@ def text_tokenizer(text):
     morph = pymorphy2.MorphAnalyzer()
     # удаляем все символы, кроме кириллицы
     regex_tokenizer = nltk.tokenize.RegexpTokenizer('[а-яА-ЯЁё]+')
-    # получаем слова
+    # приводим к нижнему регистру
     words = regex_tokenizer.tokenize(text.lower())
     # получаем стоп-слова
     stop_words = set(nltk.corpus.stopwords.words("russian"))
